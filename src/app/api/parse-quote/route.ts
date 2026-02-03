@@ -1,24 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as XLSX from 'xlsx';
-import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
+import { extractText } from 'unpdf';
 import { parseQuoteWithAI, parseQuoteFromImage } from '@/lib/gemini';
 import { supabase } from '@/lib/supabase';
 
 async function parsePDF(buffer: Buffer): Promise<string> {
-  const uint8Array = new Uint8Array(buffer);
-  const pdf = await getDocument({ data: uint8Array, useSystemFonts: true }).promise;
-
-  let fullText = '';
-  for (let i = 1; i <= pdf.numPages; i++) {
-    const page = await pdf.getPage(i);
-    const textContent = await page.getTextContent();
-    const pageText = textContent.items
-      .map((item: unknown) => (item as { str: string }).str)
-      .join(' ');
-    fullText += pageText + '\n';
-  }
-
-  return fullText;
+  const { text } = await extractText(buffer);
+  return text;
 }
 
 export async function POST(request: NextRequest) {
