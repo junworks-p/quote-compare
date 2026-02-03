@@ -48,6 +48,8 @@ const QUOTE_PROMPT_TEMPLATE = `다음 JSON 형식으로 반환해주세요. 반�
 - 욕실: 욕실 시공, 위생 도기
 - 주방: 싱크대, 주방 가구
 - 운반/폐기물: 폐기물 처리, 운반
+- VAT: 부가가치세, 부가세, VAT, 세금
+- 기업이익: 기업이익, 이윤, 마진, 관리비, 제경비
 - 기타: 위에 해당하지 않는 항목`;
 
 function parseResponse(text: string): ParsedQuote {
