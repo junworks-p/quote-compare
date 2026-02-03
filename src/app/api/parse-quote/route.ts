@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 
 async function parsePDF(buffer: Buffer): Promise<string> {
   const { text } = await extractText(buffer);
-  return text;
+  return Array.isArray(text) ? text.join('\n') : text;
 }
 
 export async function POST(request: NextRequest) {
