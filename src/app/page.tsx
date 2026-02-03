@@ -306,13 +306,13 @@ export default function Home() {
                     ) : (
                       <>
                         <p className="text-gray-500 mb-2">
-                          견적서 파일을 업로드하세요 (Excel, PDF)
+                          견적서 파일을 업로드하세요 (Excel, PDF, 이미지)
                         </p>
                         <label className="inline-block px-4 py-2 bg-blue-500 text-white rounded-lg cursor-pointer hover:bg-blue-600">
                           파일 선택
                           <input
                             type="file"
-                            accept=".xlsx,.xls,.pdf"
+                            accept=".xlsx,.xls,.pdf,.png,.jpg,.jpeg,.webp"
                             multiple
                             onChange={handleFileUpload}
                             className="hidden"

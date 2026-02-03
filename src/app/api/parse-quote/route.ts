@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as XLSX from 'xlsx';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
-import { parseQuoteWithAI } from '@/lib/gemini';
+import { parseQuoteWithAI, parseQuoteFromImage } from '@/lib/gemini';
 import { supabase } from '@/lib/supabase';
 
 async function parsePDF(buffer: Buffer): Promise<string> {
@@ -31,24 +31,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '파일이 없습니다' }, { status: 400 });
     }
 
-    const fileName = file.name;
+    const fileName = file.name.toLowerCase();
     const fileBuffer = Buffer.from(await file.arrayBuffer());
-    let content = '';
+    let parsedQuote;
 
     // 파일 형식에 따라 파싱
-    if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+    const imageExtensions = ['.png', '.jpg', '.jpeg', '.webp', '.gif'];
+    const isImage = imageExtensions.some(ext => fileName.endsWith(ext));
+
+    if (isImage) {
+      // 이미지 파일은 Gemini Vision으로 직접 분석
+      const mimeType = file.type || 'image/png';
+      parsedQuote = await parseQuoteFromImage(fileBuffer, mimeType, file.name);
+    } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
       const workbook = XLSX.read(fileBuffer, { type: 'buffer' });
       const sheetName = workbook.SheetNames[0];
       const sheet = workbook.Sheets[sheetName];
-      content = XLSX.utils.sheet_to_csv(sheet);
+      const content = XLSX.utils.sheet_to_csv(sheet);
+      parsedQuote = await parseQuoteWithAI(content, file.name);
     } else if (fileName.endsWith('.pdf')) {
-      content = await parsePDF(fileBuffer);
+      const content = await parsePDF(fileBuffer);
+      parsedQuote = await parseQuoteWithAI(content, file.name);
     } else {
-      return NextResponse.json({ error: '지원하지 않는 파일 형식입니다 (xlsx, xls, pdf만 가능)' }, { status: 400 });
+      return NextResponse.json({ error: '지원하지 않는 파일 형식입니다 (xlsx, xls, pdf, png, jpg 가능)' }, { status: 400 });
     }
-
-    // AI로 견적서 파싱
-    const parsedQuote = await parseQuoteWithAI(content, fileName);
 
     // 견적서 저장
     const { data: quote, error: quoteError } = await supabase
