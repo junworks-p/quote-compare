@@ -1,13 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as XLSX from 'xlsx';
+import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
 import { parseQuoteWithAI } from '@/lib/gemini';
 import { supabase } from '@/lib/supabase';
 
-// pdf-parse를 동적으로 import (ESM 호환성 문제 해결)
+// PDF.js 워커 비활성화 (서버 환경)
+GlobalWorkerOptions.workerSrc = '';
+
 async function parsePDF(buffer: Buffer): Promise<string> {
-  const pdfParse = (await import('pdf-parse')).default;
-  const data = await pdfParse(buffer);
-  return data.text;
+  const uint8Array = new Uint8Array(buffer);
+  const pdf = await getDocument({ data: uint8Array, useSystemFonts: true }).promise;
+
+  let fullText = '';
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const textContent = await page.getTextContent();
+    const pageText = textContent.items
+      .map((item: unknown) => (item as { str: string }).str)
+      .join(' ');
+    fullText += pageText + '\n';
+  }
+
+  return fullText;
 }
 
 export async function POST(request: NextRequest) {
