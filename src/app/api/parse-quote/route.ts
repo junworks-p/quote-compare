@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as XLSX from 'xlsx';
-import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
+import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { parseQuoteWithAI } from '@/lib/gemini';
 import { supabase } from '@/lib/supabase';
-
-// PDF.js 워커 비활성화 (서버 환경)
-GlobalWorkerOptions.workerSrc = '';
 
 async function parsePDF(buffer: Buffer): Promise<string> {
   const uint8Array = new Uint8Array(buffer);
