@@ -18,7 +18,7 @@ export type ParsedQuote = {
 };
 
 export async function parseQuoteWithAI(content: string, fileName: string): Promise<ParsedQuote> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
   const prompt = `다음은 인테리어 견적서 내용입니다. 이 견적서를 분석해서 JSON 형식으로 반환해주세요.
 
@@ -79,7 +79,7 @@ ${content}
 }
 
 export async function parseQuoteFromImage(imageBuffer: Buffer, mimeType: string, fileName: string): Promise<ParsedQuote> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
   const prompt = `이 이미지는 인테리어 견적서입니다. 이미지에서 견적 내용을 읽어서 JSON 형식으로 반환해주세요.
 
