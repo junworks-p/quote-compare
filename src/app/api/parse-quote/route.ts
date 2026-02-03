@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as XLSX from 'xlsx';
-import pdf from 'pdf-parse';
 import { parseQuoteWithAI } from '@/lib/gemini';
 import { supabase } from '@/lib/supabase';
+
+// pdf-parse를 동적으로 import (ESM 호환성 문제 해결)
+async function parsePDF(buffer: Buffer): Promise<string> {
+  const pdfParse = (await import('pdf-parse')).default;
+  const data = await pdfParse(buffer);
+  return data.text;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,8 +31,7 @@ export async function POST(request: NextRequest) {
       const sheet = workbook.Sheets[sheetName];
       content = XLSX.utils.sheet_to_csv(sheet);
     } else if (fileName.endsWith('.pdf')) {
-      const pdfData = await pdf(fileBuffer);
-      content = pdfData.text;
+      content = await parsePDF(fileBuffer);
     } else {
       return NextResponse.json({ error: '지원하지 않는 파일 형식입니다 (xlsx, xls, pdf만 가능)' }, { status: 400 });
     }
