@@ -5,7 +5,8 @@ import { parseQuoteWithAI, parseQuoteFromImage } from '@/lib/gemini';
 import { supabase } from '@/lib/supabase';
 
 async function parsePDF(buffer: Buffer): Promise<string> {
-  const { text } = await extractText(buffer);
+  const uint8Array = new Uint8Array(buffer);
+  const { text } = await extractText(uint8Array);
   return Array.isArray(text) ? text.join('\n') : text;
 }
 
